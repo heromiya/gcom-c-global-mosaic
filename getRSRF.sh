@@ -2,7 +2,7 @@
 
 export TILE=0529
 export GCP_INTERVAL=100
-export RES=250
+export RES=1000
 #export YEAR=2019
 export WARPOPT="-q -s_srs EPSG:4326 -t_srs EPSG:4087 -tr $RES $RES -tps -r lanczos -multi -co COMPRESS=Deflate -overwrite"
 
@@ -38,7 +38,7 @@ getRSRF() {
 export -f getRSRF
 
 #parallel getRSRF ::: {366..730}
-parallel getRSRF ::: {0..314}
+parallel getRSRF ::: {0..14} #314
 #for i in {268..273}; do getRSRF $i; done
 for B in VN04 VN06 VN07 VN10; do
     gdalbuildvrt -separate -overwrite VRT/$TILE.$B.vrt $(pwd)/GCOM-C/$TILE/*T${TILE}*RSRF*.$B.tif
