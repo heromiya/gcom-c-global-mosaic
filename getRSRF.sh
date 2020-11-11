@@ -5,12 +5,12 @@ export GCP_INTERVAL=200
 export RES=2000
 #export YEAR=2019  -r lanczos  -r average
 export WARPOPT="-q -s_srs EPSG:4326 -t_srs EPSG:4087 -tr $RES $RES -tps -r med -multi -co COMPRESS=Deflate -overwrite"
+export THRESHOLD=10
+mkdir -p GCOM-C/$RES/$TILE
+mkdir -p VRT/$RES
+mkdir -p composite/$RES
 
-mkdir -p GCOM-C/$TILE
-mkdir -p VRT
-mkdir -p output
-
-export OUTFILE=composite/composite.v2.$RES.$TILE.tif
+export OUTFILE=composite/$RES/composite.v2.$RES.$TILE.$THRESHOLD.tif
 
 
 getRSRF() {
@@ -32,7 +32,7 @@ getRSRF() {
     wget -q -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
     for B in VN04 VN06 VN07 VN10; do # VN03 VN05 VN07 
       	python3 h5_2_tiff.py $H5FILE Rs_${B} $H5FILE.$B.tif $GCP_INTERVAL
-	gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C/$TILE/$(basename $H5FILE).$B.tif
+	gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C/$RES/$TILE/$(basename $H5FILE).$B.tif
     done
 
     # Not stable to use resampled products.
@@ -46,13 +46,13 @@ getRSRF() {
 export -f getRSRF
 
 #parallel getRSRF ::: {366..730}
-parallel getRSRF ::: {0..6} #314
+#parallel getRSRF ::: {0..6} #314
 #parallel --bar getRSRF ::: {0..14}
-#parallel getRSRF ::: {0..314}
+parallel getRSRF ::: {0..315}
 #for i in {268..273}; do getRSRF $i; done
 
 for B in VN04 VN06 VN07 VN10 ; do #
-    gdalbuildvrt -separate -overwrite VRT/$TILE.$B.vrt $(pwd)/GCOM-C/$TILE/*T${TILE}*RSRF*.$B.tif
+    gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
 done
 
-Rscript composite.R VRT/$TILE.VN04.vrt VRT/$TILE.VN06.vrt VRT/$TILE.VN07.vrt VRT/$TILE.VN10.vrt $OUTFILE
+Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE 100

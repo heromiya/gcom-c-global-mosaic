@@ -5,12 +5,13 @@ library("raster")
 
 args = commandArgs(trailingOnly=TRUE)
 
-R <- brick(args[1])
-G <- brick(args[2])
-B <- brick(args[3])
-N <- brick(args[4])
+R <- stack(args[1])
+G <- stack(args[2])
+B <- stack(args[3])
+N <- stack(args[4])
 
 outfile <- args[5]
+th <- as.integer(args[6])
 
 ysize <- dim(R)[1]
 xsize <- dim(R)[2]
@@ -19,11 +20,15 @@ ndays <- dim(R)[3]
 rotate <- function(x) apply(t(x),2,rev)
 flip <- function(m) m[c(nrow(m):1),]
 
-input <- array(c(values(B)
-                ,values(G)
-                ,values(R)
-                ,values(N))
-              ,dim=c(xsize,ysize,ndays,4))
+input <- array(
+    c(values(B)
+     ,values(G)
+     ,values(R)
+     ,values(N)
+      )
+   ,dim=c(xsize,ysize,ndays,4)
+)
+input[input < th] <- NA
 
 composite <- function(x){
     ndvi = (x[,4] - x[,3]) / (x[,4] + x[,3])
@@ -54,5 +59,6 @@ StackOut <- stack(Rout,Gout,Bout)
 
 #writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")
 writeRaster(StackOut,filename=outfile
+            ,datatype="INT2S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)

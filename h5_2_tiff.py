@@ -64,7 +64,7 @@ if __name__ == '__main__':
 	
 	hdf_file = h5py.File(input_file, 'r')
 
-	print('OPEN %s.' % input_file)
+	#print('OPEN %s.' % input_file)
 
 	#L2のHDF5ファイルのImage_data以下にデータが入っている。
 	try:
@@ -88,8 +88,9 @@ if __name__ == '__main__':
 	Image_var=np.where(Image_var>Max_DN,np.nan,Image_var)
 
 	#値を求める
-	Value_arr=Slope*Image_var+Offset
-	Value_arr=np.array(Value_arr,dtype='float32')
+	Value_arr=(Slope*Image_var+Offset)*10000
+	Value_arr=np.array(Value_arr,dtype='int16')
+	#Value_arr=np.array(Value_arr,dtype='float32')
 
 	#行数
 	lin_size=Image_var.shape[0]
@@ -100,7 +101,8 @@ if __name__ == '__main__':
 	gcp_list=get_geomesh(input_file_name,lin_size,col_size,gcp_interval)
 
 	#出力
-	dtype = gdal.GDT_Float32
+	#dtype = gdal.GDT_Float32
+	dtype = gdal.GDT_Int16
 	band=1
 	output = gdal.GetDriverByName('GTiff').Create(output_file,lin_size,col_size,band,dtype) 
 	output.GetRasterBand(1).WriteArray(Value_arr)
