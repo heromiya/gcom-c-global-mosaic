@@ -12,7 +12,6 @@ mkdir -p composite/$RES
 
 export OUTFILE=composite/$RES/composite.v2.$RES.$TILE.$THRESHOLD.tif
 
-
 getRSRF() {
     WORKDIR=$(mktemp -d)
     DOY=$1
@@ -55,4 +54,4 @@ for B in VN04 VN06 VN07 VN10 ; do #
     gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
 done
 
-Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE 100
+Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE $THRESHOLD
