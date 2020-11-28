@@ -26,7 +26,7 @@ getRSRF() {
     FTP="ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.OCEAN.NWLR/2/$YYYY/$MM/$DD/GC1SG1_${YYYY}${MM}${DD}*_L2SG_NWLRK_*.h5"
     cp L2_scene.py $WORKDIR/
     cd $WORKDIR
-    wget -nc --user=heromiya --password=anonymous $FTP #/$YYYY/$MM/$DD/$(basename $H5FILE)
+    wget -nc -q --user=heromiya --password=anonymous $FTP #/$YYYY/$MM/$DD/$(basename $H5FILE)
     cd $OLDPWD
     for H5FILE in $WORKDIR/GC1SG1_${YYYY}${MM}${DD}*_L2SG_NWLRK_*.h5; do
 	if [ ! -e  GCOM-C/$RES/NWLR/${YYYY}/${MM}/${DD}/$(basename $H5FILE).490.tif ]; then
@@ -44,13 +44,13 @@ getRSRF() {
 export -f getRSRF
 
 #parallel getRSRF ::: {366..730}
-parallel getRSRF ::: {0..6} #314
+#parallel getRSRF ::: {0..6} #314
 #parallel --bar getRSRF ::: {0..14}
-#parallel getRSRF ::: {0..331}
+parallel getRSRF ::: {0..331}
 #for i in {268..273}; do getRSRF $i; done
 
-for B in 490 565 670; do #
-    gdalbuildvrt -separate -overwrite VRT/$RES/NWLR/$B.vrt $(find $(pwd)/GCOM-C/$RES/NWLR/ -type f -regex ".*\.$B\.vrt"
+for B in 490 565 670; do
+    gdalbuildvrt -separate -overwrite VRT/$RES/NWLR/$B.vrt $(find $(pwd)/GCOM-C/$RES/NWLR/ -type f -regex ".*\.$B\.vrt")
 done
 
-Rscript composite.R VRT/$RES/NWLR/$TILE.490.vrt VRT/$RES/NWLR/$TILE.565.vrt VRT/$RES/NWLR/$TILE.670.vrt test.NWLRK.tif #$OUTFILE
+Rscript compositeNWLR.R VRT/$RES/NWLR/$TILE.490.vrt VRT/$RES/NWLR/$TILE.565.vrt VRT/$RES/NWLR/$TILE.670.vrt test.NWLRK.tif #$OUTFILE
