@@ -6,7 +6,7 @@
 #$ -cwd
 #$ -o qsub_exec.log
 #$ -l q_core=1
-#$ -l h_rt=01:00:00
+#$ -l h_rt=03:00:00
 #$ -N GCOM-C
 #$ -j y
 #$ -m abe

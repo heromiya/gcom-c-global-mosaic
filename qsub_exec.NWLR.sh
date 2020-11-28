@@ -25,4 +25,4 @@ export PATH=/home/7/17IA0902/miniconda3/bin/:$PATH
 #export LD_LIBRARY_PATH=/home/7/17IA0902/apps/lib
 export PROJ_LIB=/gs/hs0/tgh-20IAV/miyazaki/proj
 
-bash -x getNWLR.sh $1
+bash -x getNWLR.sh

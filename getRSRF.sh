@@ -59,3 +59,5 @@ for B in VN04 VN06 VN07 VN10 ; do #
 done
 
 Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE $THRESHOLD
+
+#gdalwarp -r cubicspline -s_srs EPSG:4087 -te -20026376.39 -9462156.72 20026376.39 9462156.72 -multi -tr 5006.594098 4731.07836 -co compress=deflate 2000.v2.vrt 2000.v2.tif
