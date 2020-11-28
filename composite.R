@@ -33,12 +33,16 @@ input <- array(
 composite <- function(x){
     ndvi <- (x[,4] - x[,3]) / (x[,4] + x[,3])
     q90 <- quantile(ndvi,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
-    if(q90 > 0.5) {
-      idx <- match(q90,ndvi)
-      R <- x[idx,3]
-      G <- x[idx,2]
-      B <- x[idx,1]
-      }else{
+    if(is.na(q90)) {
+        R <- median(x[,3],na.rm=TRUE)
+    	G <- median(x[,2],na.rm=TRUE)
+    	B <- median(x[,1],na.rm=TRUE)
+    } else if( q90 > 0.5 ) {
+        idx <- match(q90,ndvi)
+    	R <- x[idx,3]
+      	G <- x[idx,2]
+      	B <- x[idx,1]
+    } else {
       R <- median(x[,3],na.rm=TRUE)
       G <- median(x[,2],na.rm=TRUE)
       B <- median(x[,1],na.rm=TRUE)
