@@ -6,7 +6,7 @@
 #$ -cwd
 #$ -o qsub_exec.NWLR.sh.log
 #$ -l q_core=8
-#$ -l h_rt=12:00:00
+#$ -l h_rt=17:00:00
 #$ -N GCOM-C-NWLR
 #$ -j y
 #$ -m abe
