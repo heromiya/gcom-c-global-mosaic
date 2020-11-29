@@ -29,7 +29,8 @@ getRSRF() {
     wget -nc -q --user=heromiya --password=anonymous $FTP #/$YYYY/$MM/$DD/$(basename $H5FILE)
     cd $OLDPWD
     for H5FILE in $WORKDIR/GC1SG1_${YYYY}${MM}${DD}*_L2SG_NWLRK_*.h5; do
-	if [ ! -e  GCOM-C/$RES/NWLR/${YYYY}/${MM}/${DD}/$(basename $H5FILE).490.tif ]; then
+	gdalinfo GCOM-C/$RES/NWLR/${YYYY}/${MM}/${DD}/$(basename $H5FILE).670.tif > /dev/null
+	if [ $? -ne 0  ]; then
 	    for B in 490 565 670; do
       		python3 L2_scene.py $H5FILE NWLR_${B} $H5FILE.$B.tif
 		gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C/$RES/NWLR/${YYYY}/${MM}/${DD}/$(basename $H5FILE).$B.tif
@@ -46,7 +47,7 @@ export -f getRSRF
 #parallel getRSRF ::: {366..730}
 #parallel getRSRF ::: {0..6} #314
 #parallel --bar getRSRF ::: {0..14}
-parallel getRSRF ::: {0..331}
+parallel -j 100% getRSRF ::: {0..331}
 #for i in {268..273}; do getRSRF $i; done
 
 for B in 490 565 670; do
