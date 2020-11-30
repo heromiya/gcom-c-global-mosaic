@@ -31,7 +31,7 @@ input <- array(
 #input[input < th] <- NA
 #input[input > 8000] <- NA
 #input[ input[,,,3] / input[,,,1] > 5 ] <- NA
-
+rm(N)
 composite <- function(x){
 
     ndvi <- (x[,4] - x[,3]) / (x[,4] + x[,3] +1)
@@ -63,23 +63,35 @@ composite <- function(x){
 
 out <- apply(input,c(1,2),composite)
 #out <- array(c(out[1,,],out[2,,],out[3,,]),dim=c(ysize,xsize,3))
+rm(input)
 
 Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Rout) <- extent(R)
 values(Rout) <- flip(rotate(out[3,,]))
+rm(R)
 
 Gout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Gout) <- extent(G)
 values(Gout) <- flip(rotate(out[2,,]))
+rm(G)
 
 Bout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Bout) <- extent(B)
 values(Bout) <- flip(rotate(out[1,,]))
+rm(B)
 
-StackOut <- stack(Rout,Gout,Bout)
+#StackOut <- stack(Rout,Gout,Bout)
 
 #writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")
-writeRaster(StackOut,filename=outfile
+writeRaster(Rout,filename=paste(outfile,".R.tif",sep="")
+            ,datatype="INT2S"
+           ,options="COMPRESS=Deflate"
+           ,overwrite=TRUE)
+writeRaster(Gout,filename=paste(outfile,".G.tif",sep="")
+            ,datatype="INT2S"
+           ,options="COMPRESS=Deflate"
+           ,overwrite=TRUE)
+writeRaster(Bout,filename=paste(outfile,".B.tif",sep="")
             ,datatype="INT2S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)

@@ -10,7 +10,7 @@ mkdir -p GCOM-C/$RES/$TILE
 mkdir -p VRT/$RES
 mkdir -p composite/$RES
 
-export OUTFILE=composite/$RES/composite.v2.$RES.$TILE.$THRESHOLD.tif
+export OUTFILE=composite/$RES/composite.v2.$RES.$TILE.$THRESHOLD
 
 getRSRF() {
     WORKDIR=$(mktemp -d)
@@ -60,4 +60,5 @@ done
 
 Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE $THRESHOLD
 
+gdalbuildvrt $OUTFILE.vrt $OUTFILE.R.tif  $OUTFILE.G.tif  $OUTFILE.B.tif 
 #gdalwarp -r cubicspline -s_srs EPSG:4087 -te -20026376.39 -9462156.72 20026376.39 9462156.72 -multi -tr 5006.594098 4731.07836 -co compress=deflate 2000.v2.vrt 2000.v2.tif
