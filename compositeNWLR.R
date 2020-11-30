@@ -29,7 +29,7 @@ input <- array(
       )
    ,dim=c(xsize,ysize,ndays,3)
 )
-#input[input < th] <- NA
+                                        #input[input < th] <- NA
 
 composite <- function(x){
     R = median(x[,3],na.rm=TRUE)
@@ -51,7 +51,7 @@ values(Rout) <- flip(rotate(out[3,,]))
 rm(R)
 
 writeRaster(Rout,filename=paste(outfile,".R.tif",sep="")
-            ,datatype="FLT4S"
+           ,datatype="FLT4S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)
 
@@ -63,7 +63,7 @@ values(Gout) <- flip(rotate(out[2,,]))
 rm(G)
 
 writeRaster(Gout,filename=paste(outfile,".G.tif",sep="")
-            ,datatype="FLT4S"
+           ,datatype="FLT4S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)
 
@@ -75,32 +75,32 @@ values(Bout) <- flip(rotate(out[1,,]))
 rm(B)
 
 writeRaster(Bout,filename=paste(outfile,".B.tif",sep="")
-            ,datatype="FLT4S"
+           ,datatype="FLT4S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)
 rm(Bout)
 
 if(FALSE){
-out <- apply(input,c(1,2),composite)
-#out <- array(c(out[1,,],out[2,,],out[3,,]),dim=c(ysize,xsize,3))
+    out <- apply(input,c(1,2),composite)
+                                        #out <- array(c(out[1,,],out[2,,],out[3,,]),dim=c(ysize,xsize,3))
 
-Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)
-extent(Rout) <- extent(R)
-values(Rout) <- flip(rotate(out[3,,]))
+    Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)
+    extent(Rout) <- extent(R)
+    values(Rout) <- flip(rotate(out[3,,]))
 
-Gout <- raster(ncol=xsize, nrow=ysize, crs=NA)
-extent(Gout) <- extent(G)
-values(Gout) <- flip(rotate(out[2,,]))
+    Gout <- raster(ncol=xsize, nrow=ysize, crs=NA)
+    extent(Gout) <- extent(G)
+    values(Gout) <- flip(rotate(out[2,,]))
 
-Bout <- raster(ncol=xsize, nrow=ysize, crs=NA)
-extent(Bout) <- extent(B)
-values(Bout) <- flip(rotate(out[1,,]))
+    Bout <- raster(ncol=xsize, nrow=ysize, crs=NA)
+    extent(Bout) <- extent(B)
+    values(Bout) <- flip(rotate(out[1,,]))
 
-StackOut <- stack(Rout,Gout,Bout)
+    StackOut <- stack(Rout,Gout,Bout)
 
-#writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")
-writeRaster(StackOut,filename=outfile
-            ,datatype="INT2S"
-           ,options="COMPRESS=Deflate"
-           ,overwrite=TRUE)
+                                        #writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")
+    writeRaster(StackOut,filename=outfile
+               ,datatype="INT2S"
+               ,options="COMPRESS=Deflate"
+               ,overwrite=TRUE)
 }
