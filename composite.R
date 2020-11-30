@@ -70,28 +70,35 @@ extent(Rout) <- extent(R)
 values(Rout) <- flip(rotate(out[3,,]))
 rm(R)
 
+writeRaster(Rout,filename=paste(outfile,".R.tif",sep="")
+            ,datatype="INT2S"
+           ,options="COMPRESS=Deflate"
+           ,overwrite=TRUE)
+
+rm(Rout)
+
 Gout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Gout) <- extent(G)
 values(Gout) <- flip(rotate(out[2,,]))
 rm(G)
+
+writeRaster(Gout,filename=paste(outfile,".G.tif",sep="")
+            ,datatype="INT2S"
+           ,options="COMPRESS=Deflate"
+           ,overwrite=TRUE)
+
+rm(Gout)
 
 Bout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Bout) <- extent(B)
 values(Bout) <- flip(rotate(out[1,,]))
 rm(B)
 
-#StackOut <- stack(Rout,Gout,Bout)
-
-#writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")
-writeRaster(Rout,filename=paste(outfile,".R.tif",sep="")
-            ,datatype="INT2S"
-           ,options="COMPRESS=Deflate"
-           ,overwrite=TRUE)
-writeRaster(Gout,filename=paste(outfile,".G.tif",sep="")
-            ,datatype="INT2S"
-           ,options="COMPRESS=Deflate"
-           ,overwrite=TRUE)
 writeRaster(Bout,filename=paste(outfile,".B.tif",sep="")
             ,datatype="INT2S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)
+rm(Bout)
+#StackOut <- stack(Rout,Gout,Bout)
+
+#writeRaster(StackOut,filename="out.tif",overwrite=TRUE,options="compress=deflate")

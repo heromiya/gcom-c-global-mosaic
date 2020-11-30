@@ -51,8 +51,9 @@ export -f getRSRF
 #parallel getRSRF ::: {366..730}
 #parallel getRSRF ::: {0..6} #314
 #parallel --bar getRSRF ::: {0..14}
-parallel getRSRF ::: {0..331}
 #for i in {268..273}; do getRSRF $i; done
+
+parallel getRSRF ::: {0..331}
 
 for B in VN04 VN06 VN07 VN10 ; do #
     gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
@@ -60,5 +61,8 @@ done
 
 Rscript composite.R VRT/$RES/$TILE.VN04.vrt VRT/$RES/$TILE.VN06.vrt VRT/$RES/$TILE.VN07.vrt VRT/$RES/$TILE.VN10.vrt $OUTFILE $THRESHOLD
 
-gdalbuildvrt $OUTFILE.vrt $OUTFILE.R.tif  $OUTFILE.G.tif  $OUTFILE.B.tif 
+rm -f $OUTFILE.tif
+gdal_merge.py -separate -n 0 -a_nodata -32768 -o $OUTFILE.tif $OUTFILE.R.tif $OUTFILE.G.tif  $OUTFILE.B.tif 
+rm -f $OUTFILE.R.tif $OUTFILE.G.tif $OUTFILE.B.tif
+
 #gdalwarp -r cubicspline -s_srs EPSG:4087 -te -20026376.39 -9462156.72 20026376.39 9462156.72 -multi -tr 5006.594098 4731.07836 -co compress=deflate 2000.v2.vrt 2000.v2.tif
