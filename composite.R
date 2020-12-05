@@ -38,7 +38,7 @@ composite <- function(x){
     q90 <- quantile(ndvi,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
     idx <- match(q90,ndvi)
 
-    x[ x > 8000 ] <- NA 
+#    x[ x > 8000 ] <- NA 
 #    x[ x < 10 ] <- NA
 #    x[ x[,1] / (x[,3] + 1) < 0.2, ] <- NA
 # || a[1] > 5000 || a[2] > 5000 || a[3] > 5000 || a[4] > 5000
