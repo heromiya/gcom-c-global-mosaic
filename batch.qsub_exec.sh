@@ -7,16 +7,16 @@
 #done
 
 
-for HH in {0..35}; do
-    for VV in {0..17}; do
-	TILE=$(printf %02d%02d $VV $HH)
-	qsub -g tgh-20IAV qsub_exec.sh $TILE
-    done
-done
-#if [ "$(grep $TILE RSRF.completed.lst)" = "" ]; then  ; fi
-#for TILE in 0117 0214 1513 1615 1618; do
-#    qsub -g tgh-20IAV qsub_exec.sh $TILE
+#for HH in {0..35}; do
+#    for VV in {0..17}; do
+#	TILE=$(printf %02d%02d $VV $HH)
+#	qsub -g tgh-20IAV qsub_exec.sh $TILE
+#    done
 #done
+#if [ "$(grep $TILE RSRF.completed.lst)" = "" ]; then  ; fi
+for TILE in 0113 0117 0214 1513 1615 1618; do
+    qsub -g tgh-20IAV qsub_exec.sh $TILE
+done
 
 #for PATH in 1..485; do
     
