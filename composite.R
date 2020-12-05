@@ -28,22 +28,15 @@ input <- array(
       )
    ,dim=c(xsize,ysize,ndays,4)
 )
-#input[input < th] <- NA
-#input[input > 8000] <- NA
-#input[ input[,,,3] / input[,,,1] > 5 ] <- NA
 rm(N)
+
 composite <- function(x){
 
     ndvi <- (x[,4] - x[,3]) / (x[,4] + x[,3] +1)
     q90 <- quantile(ndvi,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
     idx <- match(q90,ndvi)
 
-    x[ x > 8000 ] <- NA 
-#    x[ x < 10 ] <- NA
-#    x[ x[,1] / (x[,3] + 1) < 0.2, ] <- NA
-# || a[1] > 5000 || a[2] > 5000 || a[3] > 5000 || a[4] > 5000
-     
-     x[apply(x,1,function(a){a[1] == 0 || a[2] == 0 || a[3] == 0 || a[4] == 0} || a[3]/(a[2]+1) > 2),] <- NA
+    x[apply(x,1,function(a){a[1] == 0 || a[2] == 0 || a[3] == 0 || a[4] == 0 || a[3]/(a[2]+1) > 2}),] <- NA
 
     if(is.na(q90)) {
         R <- median(x[,3],na.rm=TRUE)
@@ -58,14 +51,10 @@ composite <- function(x){
     	G <- median(x[,2],na.rm=TRUE)
    	B <- median(x[,1],na.rm=TRUE)
     }
-#    if ( is.na(G) && ! is.na(R) && ! is.na(B) ) {
-#       G <- (R + G) / 2
-#    }
     c(R,G,B)
 }
 
 out <- apply(input,c(1,2),composite)
-#out <- array(c(out[1,,],out[2,,],out[3,,]),dim=c(ysize,xsize,3))
 rm(input)
 
 Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)

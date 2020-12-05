@@ -14,8 +14,8 @@
 #    done
 #done
 #if [ "$(grep $TILE RSRF.completed.lst)" = "" ]; then  ; fi
-for TILE in 0113 0117 0214 1513 1615 1618; do
-    qsub -g tgh-20IAV qsub_exec.sh $TILE
+for TILE in 0113; do # 0117 0214 1513 1615 1618
+     qsub -g tgh-20IAV qsub_exec.sh $TILE
 done
 
 #for PATH in 1..485; do
