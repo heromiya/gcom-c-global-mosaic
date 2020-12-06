@@ -1,6 +1,6 @@
 #! /bin/bash
-#export WORKDIR=$(mktemp -d)
-export WORKDIR=/tmp/tmp.GkK2NZjkGK
+export WORKDIR=$(mktemp -d)
+#export WORKDIR=/tmp/tmp.GkK2NZjkGK
 
 UPPER_EXTENT=-20026376.39,6704500.2,20026376.39,9462156.72
 MIDDLE_EXTENT=-20026376.39,-7164200.9,20026376.39,6704500.2
