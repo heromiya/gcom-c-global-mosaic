@@ -1,17 +1,18 @@
 ## install.packages("rgdal")
 ## install.packages("raster")
+## install.packages("ijtiff")
 library("rgdal")
 library("raster")
+library("ijtiff")
 
 args = commandArgs(trailingOnly=TRUE)
 
-R <- stack(args[1])
+B <- stack(args[1])
 G <- stack(args[2])
-B <- stack(args[3])
+R <- stack(args[3])
 N <- stack(args[4])
 
 outfile <- args[5]
-th <- as.integer(args[6])
 
 ysize <- dim(R)[1]
 xsize <- dim(R)[2]
@@ -44,17 +45,17 @@ composite <- function(x){
     idx.ref <- match(med.ave.ref,ave.ref)
 
     if(is.na(q90)) {
-        R <- x[idx.ref,3] #median(x[,3],na.rm=TRUE)
-        G <- x[idx.ref,2] #median(x[,2],na.rm=TRUE)
-        B <- x[idx.ref,1] #median(x[,1],na.rm=TRUE)        
+        R <- x[idx.ref,3]
+        G <- x[idx.ref,2]
+        B <- x[idx.ref,1]
     } else if( q90 > 0.5 && ! is.na( x[idx,1] ) && ! is.na( x[idx,2] ) && ! is.na( x[idx,3] ) ) {
     	R <- x[idx,3]
       	G <- x[idx,2]
       	B <- x[idx,1]
     } else {
-        R <- x[idx.ref,3] #median(x[,3],na.rm=TRUE)
-        G <- x[idx.ref,2] #median(x[,2],na.rm=TRUE)
-        B <- x[idx.ref,1] #median(x[,1],na.rm=TRUE)        
+        R <- x[idx.ref,3]
+        G <- x[idx.ref,2]
+        B <- x[idx.ref,1]
     }
 #    c(as.numeric(R)/10000,as.numeric(G)/10000,as.numeric(B)/10000)
     c(R,G,B)
@@ -63,37 +64,31 @@ composite <- function(x){
 out <- apply(input,c(1,2),composite)
 #rm(input)
 
+#for(i in c(1:3)){ 
+#      write_tif(flip(rotate(out[i,,])), paste(outfile,".",i,".tif",sep=""))
+#}
+
+
 Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Rout) <- extent(R)
 values(Rout) <- flip(rotate(out[1,,]))
-#rm(R)
-
-writeRaster(Rout,filename=paste(outfile,".R.tif",sep="")
-            ,datatype="INT2S"
-           ,options="COMPRESS=Deflate"
-           ,overwrite=TRUE)
-
-#rm(Rout)
+#writeRaster(Rout,filename=paste(outfile,".R.tif",sep=""))
+#rm(R,Rout)
 
 Gout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Gout) <- extent(G)
 values(Gout) <- flip(rotate(out[2,,]))
-#rm(G)
-
-writeRaster(Gout,filename=paste(outfile,".G.tif",sep="")
-            ,datatype="INT2S"
-           ,options="COMPRESS=Deflate"
-           ,overwrite=TRUE)
-
-#rm(Gout)
+#writeRaster(Gout,filename=paste(outfile,".G.tif",sep=""))
+#rm(G,Gout)
 
 Bout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Bout) <- extent(B)
 values(Bout) <- flip(rotate(out[3,,]))
-#rm(B)
+#writeRaster(Bout,filename=paste(outfile,".B.tif",sep=""))
+#rm(B,Bout)
 
-writeRaster(Bout,filename=paste(outfile,".B.tif",sep="")
-            ,datatype="INT2S"
+writeRaster( stack(Rout,Gout,Bout)
+	     ,filename=outfile
+	     ,datatype="INT2S"
            ,options="COMPRESS=Deflate"
            ,overwrite=TRUE)
-#rm(Bout)

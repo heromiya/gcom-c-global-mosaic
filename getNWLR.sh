@@ -43,7 +43,7 @@ getRSRF() {
 }
 export -f getRSRF
 
-parallel getRSRF ::: {0..331}
+parallel getRSRF ::: {0..338}
 
 for B in 490 565 670; do
     gdalbuildvrt -separate -overwrite VRT/$RES/NWLR/$B.vrt $(find $(pwd)/GCOM-C/$RES/NWLR/ -type f -regex ".*\.$B\.vrt" | sort) # head -n 100
