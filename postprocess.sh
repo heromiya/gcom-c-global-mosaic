@@ -1,7 +1,8 @@
 #! /bin/bash
 export WORKDIR=$(mktemp -d)
 #export WORKDIR=/tmp/tmp.GkK2NZjkGK
-
+mkdir -p output
+INPUT=$(pwd)/RSRF.2000.20201205.wo_noise.tif
 UPPER_EXTENT=-20026376.39,6704500.2,20026376.39,9462156.72
 MIDDLE_EXTENT=-20026376.39,-7164200.9,20026376.39,6704500.2
 LOWER_EXTENT=-20026376.39,-9462156.72,20026376.39,-7164200.9
@@ -17,38 +18,46 @@ LOWER_EXTENT=-20026376.39,-9462156.72,20026376.39,-7164200.9
 fill_filter(){
     INPUT=$1
     B=$2
+#    gdalbuildvrt -srcnodata 0 -vrtnodata -32768 -overwrite  $INPUT.vrt $INPUT
     gdal_fillnodata.py -md 2000 $INPUT -b $B -co COMPRESS=Deflate $INPUT.filled.$B.tif
     #saga_cmd grid_tools 7 -INPUT $INPUT -RESULT $INPUT.filled.$B.sdat
     saga_cmd grid_filter 1 -INPUT $INPUT.filled.$B.tif -RESULT $INPUT.$B.sdat
 }
 export -f fill_filter
 
-gdalbuildvrt -overwrite -srcnodata -32768 -vrtnodata -32768 -te $(echo $LOWER_EXTENT | sed 's/,/ /g') $WORKDIR/lower.vrt RSRF.2000.wo_noise.tif
-gdalbuildvrt -overwrite -srcnodata -32768 -vrtnodata -32768 -te $(echo $UPPER_EXTENT | sed 's/,/ /g') $WORKDIR/upper.vrt RSRF.2000.wo_noise.tif
+gdalbuildvrt -overwrite -srcnodata 0 -vrtnodata -32768 -te $(echo $LOWER_EXTENT | sed 's/,/ /g') $(pwd)/output/lower.vrt $INPUT
+gdalbuildvrt -overwrite -srcnodata 0 -vrtnodata -32768 -te $(echo $UPPER_EXTENT | sed 's/,/ /g') $(pwd)/output/upper.vrt $INPUT
 
-parallel fill_filter ::: $WORKDIR/lower.vrt $WORKDIR/upper.vrt ::: {1..3}
-#parallel fill_filter ::: $WORKDIR/lower.vrt ::: {1..3}
+#parallel fill_filter ::: $(pwd)/output/lower.vrt $(pwd)/output/upper.vrt ::: {1..3}
 
 ### Middle
 
-gdalbuildvrt -srcnodata -32768 -vrtnodata -32768 -te $(echo $MIDDLE_EXTENT | sed 's/,/ /g') $WORKDIR/middle.RSRF.vrt  RSRF.2000.wo_noise.tif
-gdalbuildvrt -srcnodata 0 -vrtnodata -32768      -te $(echo $MIDDLE_EXTENT | sed 's/,/ /g') $WORKDIR/middle.NWLRK.vrt NWLRK.matched.tif 
+gdalbuildvrt -srcnodata 0 -vrtnodata -32768 -te $(echo $MIDDLE_EXTENT | sed 's/,/ /g') output/middle.RSRF.vrt $INPUT
+gdalbuildvrt -srcnodata 0 -vrtnodata -32768      -te $(echo $MIDDLE_EXTENT | sed 's/,/ /g') output/middle.NWLRK.vrt $(pwd)/NWLRK.matched.tif 
 
-merge_filter(){
+merge_filter(){ #-srcnodata -32768 -vrtnodata -32768
     B=$1
-    gdalbuildvrt -overwrite -srcnodata -32768 -vrtnodata -32768 -b $B $WORKDIR/middle.merged.$B.vrt $WORKDIR/middle.NWLRK.vrt $WORKDIR/middle.RSRF.vrt
-    saga_cmd grid_filter 1 -INPUT $WORKDIR/middle.merged.$B.vrt -RESULT $WORKDIR/middle.vrt.$B.sdat
+    gdalbuildvrt -overwrite -b $B output/middle.merged.$B.vrt $(pwd)/output/middle.NWLRK.vrt $(pwd)/output/middle.RSRF.vrt
+    saga_cmd grid_filter 1 -INPUT output/middle.merged.$B.vrt -RESULT output/middle.vrt.$B.sdat
 }
 export -f merge_filter
 
 #parallel merge_filter ::: {1..3}
 
-for SEP in upper lower middle; do
-    gdalbuildvrt -separate $WORKDIR/$SEP.filled.vrt $(for B in {1..3}; do printf "$WORKDIR/$SEP.vrt.$B.sdat "; done)
+for SEP in middle upper lower; do #
+    gdalbuildvrt -separate output/$SEP.filled.vrt $(for B in {1..3}; do printf "$(pwd)/output/$SEP.vrt.$B.sdat "; done)
 done
 
 ### Merge
-gdalbuildvrt RSRF.2000.filled.vrt $(for L in lower middle upper; do printf "$WORKDIR/$L.filled.vrt "; done)
+gdalbuildvrt output/RSRF.2000.filled.vrt $(for L in lower middle upper; do printf "output/$L.filled.vrt "; done)
+#gdalbuildvrt RSRF.2000.filled.vrt /tmp/tmp.hioNe0X12C/lower.filled.vrt /tmp/tmp.O3ngJXYGZy/middle.filled.vrt /tmp/tmp.hioNe0X12C/lower.filled.vrt
+
+### Resize
+
+gdalwarp -overwrite -r cubicspline -s_srs EPSG:4087 -te -20026376.39 -9462156.72 20026376.39 9462156.72 -tr 5006.594098 4731.07836 -co COMPRESS=Deflate -multi output/RSRF.2000.filled.vrt output/RSRF.NWLRK.8000x4000.tif
+
+gdal_translate -ot Byte -of JPEG -scale_1 0 3200 1 255 -scale_2 0 2600 1 255 -scale_3 0 2900 1 255 output/RSRF.NWLRK.8000x4000.tif  output/RSRF.NWLRK.8000x4000.jpg
+
 
 #for i in {0..10}; do
 #    gdalwarp -overwrite -srcnodata "-32768 0" -dstnodata "-32768 0" tmp2.tif tmp1.tif
