@@ -1,9 +1,9 @@
 #! /bin/bash
 
-export VER=20201205
+export VER=20201209
 export TILE=$1
 export GCP_INTERVAL=200
-export RES=2000
+export RES=250
 export WARPOPT="-q -s_srs EPSG:4326 -t_srs EPSG:4087 -tr $RES $RES -tps -r med -multi -co COMPRESS=Deflate -overwrite"
 mkdir -p GCOM-C/$RES/$TILE
 mkdir -p VRT/$RES
@@ -26,11 +26,18 @@ getRSRF() {
     FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/2
 
     if [ ! -e  GCOM-C/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
-	wget -q -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
-	for B in VN04 VN06 VN07 VN10; do # VN03 VN05 VN07 
-      	    python3 h5_2_tiff.py $H5FILE Rs_${B} $H5FILE.$B.tif $GCP_INTERVAL
-	    gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C/$RES/$TILE/$(basename $H5FILE).$B.tif
+	
+	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
+	    sleep $(echo $(( $RANDOM % 60 + 1 )))
 	done
+	
+	wget -q -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
+	if [ $? -eq 0 ]; then
+	    for B in VN04 VN06 VN07 VN10; do # VN03 VN05 VN07 
+      		python3 h5_2_tiff.py $H5FILE Rs_${B} $H5FILE.$B.tif $GCP_INTERVAL
+		gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C/$RES/$TILE/$(basename $H5FILE).$B.tif
+	    done
+	fi
     fi
 
     #H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}*${TILE}_L2SG_NWLRQ_2001.h5
@@ -52,7 +59,7 @@ export -f getRSRF
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
 
-parallel -j 100% getRSRF ::: {0..338}
+parallel -j 100% getRSRF ::: {0..343}
 
 for B in VN04 VN06 VN07 VN10 ; do #
     gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
@@ -90,7 +97,7 @@ export -f composite
 UpperLeft=($(gdalinfo -json VRT/$RES/$TILE.VN04.vrt | jq ".cornerCoordinates.upperLeft" | tr -d "[],"))
 LowerRight=($(gdalinfo -json VRT/$RES/$TILE.VN04.vrt | jq ".cornerCoordinates.lowerRight" | tr -d "[],"))
 
-N_INT=4
+N_INT=8
 H_INTERVAL=$(perl -e "print( (${LowerRight[0]} - ${UpperLeft[0]}) / $N_INT )")
 V_INTERVAL=$(perl -e "print( (${UpperLeft[1]} - ${LowerRight[1]}) / $N_INT )")
 
