@@ -56,7 +56,7 @@ gdalbuildvrt output/RSRF.2000.filled.vrt $(for L in lower middle upper; do print
 
 gdalwarp -overwrite -r cubicspline -s_srs EPSG:4087 -te -20026376.39 -9462156.72 20026376.39 9462156.72 -tr 5006.594098 4731.07836 -co COMPRESS=Deflate -multi output/RSRF.2000.filled.vrt output/RSRF.NWLRK.8000x4000.tif
 
-gdal_translate -ot Byte -of JPEG -scale_1 0 3200 1 255 -scale_2 0 2600 1 255 -scale_3 0 2900 1 255 output/RSRF.NWLRK.8000x4000.tif  output/RSRF.NWLRK.8000x4000.jpg
+gdal_translate -ot Byte -co COMPRESS=Deflate -scale_1 0 3200 1 255 -scale_2 0 2600 1 255 -scale_3 0 2900 1 255 output/RSRF.NWLRK.8000x4000.tif  output/RSRF.NWLRK.8000x4000.Byte.tif
 
 
 #for i in {0..10}; do
