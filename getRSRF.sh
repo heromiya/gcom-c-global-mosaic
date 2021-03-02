@@ -12,7 +12,7 @@ mkdir -p composite/$RES/$VER
 export OUTFILE=composite/$RES/$VER/composite.v2.$RES.$TILE.$VER
 
 getRSRF() {
-    WORKDIR=$(mktemp -d)
+    WORKDIR=$(mktemp -d /tmp/tmp.getRSRF.XXXXX)
     DOY=$1
     DATE_STRING="jan 1 2020 $DOY days"
     export YYYY=$(date --date="$DATE_STRING" +%Y)
@@ -25,13 +25,14 @@ getRSRF() {
     H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_RSRFQ_2000.h5
     FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/2
 
+    sleep $(echo $(( $RANDOM % 60 + 1 )))
     if [ ! -e  GCOM-C/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
 	
 	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
 	    sleep $(echo $(( $RANDOM % 60 + 1 )))
 	done
 	
-	wget -q -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
+	wget -q --random-wait -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
 	if [ $? -eq 0 ]; then
 	    for B in VN04 VN06 VN07 VN10; do # VN03 VN05 VN07 
       		python3 h5_2_tiff.py $H5FILE Rs_${B} $H5FILE.$B.tif $GCP_INTERVAL
@@ -59,7 +60,8 @@ export -f getRSRF
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
 
-parallel -j 100% getRSRF ::: {0..343}
+parallel -j4 --shuf getRSRF ::: {0..365}
+
 
 for B in VN04 VN06 VN07 VN10 ; do #
     gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
