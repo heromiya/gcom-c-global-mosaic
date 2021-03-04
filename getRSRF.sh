@@ -28,7 +28,7 @@ getRSRF() {
     sleep $(echo $(( $RANDOM % 60 + 1 )))
     if [ ! -e  GCOM-C/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
 	
-	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
+	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 5 ]; do
 	    sleep $(echo $(( $RANDOM % 60 + 1 )))
 	done
 	
@@ -60,7 +60,7 @@ export -f getRSRF
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
 
-parallel -j4 --shuf getRSRF ::: {0..365}
+parallel -j2 --shuf getRSRF ::: {0..365}
 
 
 for B in VN04 VN06 VN07 VN10 ; do #
