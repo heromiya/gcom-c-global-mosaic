@@ -10,4 +10,9 @@
 #    done
 #done
 
-parallel -j50% --shuf --joblog getRSRF.sh.log ./getRSRF.sh {1}{2} ::: {00..17} ::: {00..35}
+find GCOM-C/250/ -type f | sed 's/.*_T\([0-9]\{4\}\)_.*/\1/g' | sort | uniq > TileNum.lst
+for TILE in $(cat TileNum.lst); do
+    ./getRSRF.sh $TILE
+done
+
+#parallel -j50% --shuf --joblog getRSRF.sh.log ./getRSRF.sh {1}{2} ::: {00..17} ::: {00..35}

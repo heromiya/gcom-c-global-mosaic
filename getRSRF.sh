@@ -25,12 +25,12 @@ getRSRF() {
     H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_RSRFQ_2000.h5
     FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/2
 
-    sleep $(echo $(( $RANDOM % 60 + 1 )))
+    #sleep $(echo $(( $RANDOM % 60 + 1 )))
     if [ ! -e  GCOM-C/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
 	
-	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
-	    sleep $(echo $(( $RANDOM % 60 + 1 )))
-	done
+	#while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
+	#    sleep $(echo $(( $RANDOM % 60 + 1 )))
+	#done
 	
 	wget -q --random-wait -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
 	if [ $? -eq 0 ]; then
@@ -60,11 +60,11 @@ export -f getRSRF
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
 
-parallel --shuf getRSRF ::: {0..365}
+parallel --bar getRSRF ::: {0..365}
 
 
 for B in VN04 VN06 VN07 VN10 ; do #
-    gdalbuildvrt -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
+    gdalbuildvrt -q -separate -overwrite VRT/$RES/$TILE.$B.vrt $(pwd)/GCOM-C/$RES/$TILE/*T${TILE}*RSRF*.$B.tif
 done
 
 composite(){
@@ -77,7 +77,7 @@ composite(){
     Y_MAX=$(echo $Y_RANGE | cut -f 2 -d ",")
 
     for B in VN04 VN06 VN07 VN10; do
-	gdalbuildvrt -te $X_MIN $Y_MIN $X_MAX $Y_MAX $WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.$B.vrt VRT/$RES/$TILE.$B.vrt
+	gdalbuildvrt -q -te $X_MIN $Y_MIN $X_MAX $Y_MAX $WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.$B.vrt VRT/$RES/$TILE.$B.vrt
     done
 
     #OUTFILE=NWLR/NWLRK.$X_MIN.$Y_MIN.$X_MAX.$Y_MAX
@@ -99,7 +99,7 @@ export -f composite
 UpperLeft=($(gdalinfo -json VRT/$RES/$TILE.VN04.vrt | jq ".cornerCoordinates.upperLeft" | tr -d "[],"))
 LowerRight=($(gdalinfo -json VRT/$RES/$TILE.VN04.vrt | jq ".cornerCoordinates.lowerRight" | tr -d "[],"))
 
-N_INT=8
+N_INT=64
 H_INTERVAL=$(perl -e "print( (${LowerRight[0]} - ${UpperLeft[0]}) / $N_INT )")
 V_INTERVAL=$(perl -e "print( (${UpperLeft[1]} - ${LowerRight[1]}) / $N_INT )")
 
@@ -117,7 +117,7 @@ seq ${LowerRight[1]} $V_INTERVAL ${UpperLeft[1]} >> $V_1
 seq ${LowerRight[1]} $V_INTERVAL ${UpperLeft[1]} >  $V_2
 
 
-parallel -j 100% composite ::: $(paste $H_1 $H_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }') ::: $(paste $V_1 $V_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }')
+parallel composite ::: $(paste $H_1 $H_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }') ::: $(paste $V_1 $V_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }')
 
 rm -f $OUTFILE.tif
 gdal_merge.py -ot Int16 -n 0 -a_nodata -32768 -co COMPRESS=Deflate -o $OUTFILE.tif $OUTFILE.*.tif
