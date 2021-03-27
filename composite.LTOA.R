@@ -29,10 +29,10 @@ input <- array(
 )
 
 composite <- function(x){
-
-    intencity <- mean(c(x[,1:3]))
-    q90 <- quantile(intencity,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
-    idx <- match(q90,intencity)
+    intencity <- apply(x,1,mean)
+    #q90 <- quantile(intencity,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
+    #idx <- match(q90,intencity)
+    idx <- match(max(intencity,na.rm=TRUE),intencity)
 
     R <- x[idx,3]
     G <- x[idx,2]

@@ -1,9 +1,10 @@
 #! /bin/bash
 
-export VER=20210328_03
 export TILE=$1
+export BUF=$2
+export VER=20210328_$(printf %02d $BUF)
 export RES=2000
-export VRTDIR=VRT/LTOA/$RES
+export VRTDIR=VRT/LTOA/$RES/$(printf %02d $BUF)
 mkdir -p $VRTDIR
 
 export OUTFILE=composite/LTOA/$RES/$VER/composite.$RES.$TILE.$VER
@@ -11,7 +12,17 @@ mkdir -p $(dirname $OUTFILE)
 
 for B in VN04 VN06 VN07 ; do #
     INPUT_FILE_LIST=$(mktemp)
-    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1008\|1009\|1010" > $INPUT_FILE_LIST
+    case $BUF in
+	7)
+	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1006\|1007\|1008\|1009\|1010\|1011\|1012" | sort > $INPUT_FILE_LIST
+	    ;;
+	5)
+	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1007\|1008\|1009\|1010\|1011" | sort > $INPUT_FILE_LIST
+	    ;;
+	3)
+	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1008\|1009\|1010" | sort > $INPUT_FILE_LIST
+	    ;;
+    esac
     gdalbuildvrt -separate -input_file_list $INPUT_FILE_LIST -overwrite $VRTDIR/$TILE.$B.vrt #$(pwd)/GCOM-C-LTOA/$RES/$TILE/*T${TILE}*LTOAK*.$B.tif
     rm -f $INPUT_FILE_LIST
 done
@@ -35,7 +46,7 @@ composite(){
 	$WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.VN07.vrt \
 	$OUTFILE.$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.tif
 
-#    rm -rf $WORKDIR
+    rm -rf $WORKDIR
 }
 export -f composite
 
@@ -68,7 +79,7 @@ parallel composite ::: $(paste $H_1 $H_2 | tail -n +2 | head -n -1 | awk '{print
 
 
 rm -f $OUTFILE.tif
-gdal_merge.py -ot Int16 -n 0 -a_nodata -32768 -co COMPRESS=Deflate -o $OUTFILE.tif $OUTFILE.*.tif
+gdal_merge.py -ot Float32 -co COMPRESS=Deflate -o $OUTFILE.tif $OUTFILE.*.tif
 rm -f $OUTFILE.*.tif
 
 
