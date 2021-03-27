@@ -10,7 +10,9 @@
 #    done
 #done
 
-#parallel -j50% --shuf --joblog getRSRF.sh.log ./getRSRF.sh {1}{2} ::: {00..17} ::: {00..35}
-for TILE in $(cat TileNum.lst); do
-    ./getLTOA.sh $TILE
-done
+#parallel --shuf --joblog getRSRF.sh.log ./getRSRF.sh {1}{2} ::: {00..17} ::: {00..35}
+#for TILE in $(cat TileNum.lst); do
+#    ./getLTOA.sh $TILE
+#done
+#parallel ./getLTOA.sh {} :::: TileNum.lst
+for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
