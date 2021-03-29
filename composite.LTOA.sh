@@ -13,6 +13,9 @@ mkdir -p $(dirname $OUTFILE)
 for B in VN04 VN06 VN07 ; do #
     INPUT_FILE_LIST=$(mktemp)
     case $BUF in
+	11)
+	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1004\|1005\|1006\|1007\|1008\|1009\|1010\|1011\|1012\|1013\|1014" | sort > $INPUT_FILE_LIST
+	    ;;
 	9)
 	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1005\|1006\|1007\|1008\|1009\|1010\|1011\|1012\|1013" | sort > $INPUT_FILE_LIST
 	    ;;

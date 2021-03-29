@@ -21,7 +21,7 @@ getRSRF() {
     
     #H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_RSRFQ_1001.h5
     #FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/1
-    #FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/2
+    FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.LTOA/2
 
     H5FILE=GCOM-C-LTOA/LTOA/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_LTOAK_2002.h5
 
@@ -60,6 +60,6 @@ export -f getRSRF
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
 
-parallel getRSRF ::: {278..284}
+parallel getRSRF ::: {276..286}
 
 #getRSRF 281

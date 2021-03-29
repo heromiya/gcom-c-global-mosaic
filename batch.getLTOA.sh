@@ -15,7 +15,7 @@
 #    ./getLTOA.sh $TILE
 #done
 #parallel ./getLTOA.sh {} :::: TileNum.lst
-#for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
-for BUF in 9; do #3 5 7
+for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
+for BUF in 9 11; do #3 5 7 9
     for TILE in $(cat TileNum.lst); do bash -x ./composite.LTOA.sh $TILE $BUF; done
 done
