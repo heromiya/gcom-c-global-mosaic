@@ -2,9 +2,9 @@
 
 export TH=100
 export SIEVE=30
-export CLD_MIN=105
-export CLD_MAX=115
-for BUF in 07; do
+export CLD_MIN=100
+export CLD_MAX=110
+for BUF in 09 11; do
 
     export BUF
     #make cloudMask.LTOA.20210328_$BUF.$TH.sieve$SIEVE.tif

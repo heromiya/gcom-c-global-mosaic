@@ -4,32 +4,52 @@ GCOM-C/GC1SG1_$(YYYY)$(MM)$(DD)A01D_T$(TILE)_L2SG_RSRFQ_2000.h5:
 GCOM-C/GC1SG1_$(YYYY)$(MM)$(DD)A01D_T$(TILE)_L2SG_RSRFQ_2000.VN04.vrt: GCOM-C/GC1SG1_$(YYYY)$(MM)$(DD)A01D_T$(TILE)_L2SG_RSRFQ_2000.h5
 	gdalinfo $< | grep -e Geometry_data_Lower -e Geometry_data_Upper
 
+$(H5FILE).$(B).gcp.tif: $(H5FILE)
+	python3 h5_2_tiff.LTOA.py $< Lt_$(B) $@ $(GCP_INTERVAL)
+
+$(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
+	gdalwarp $(WARPOPT) $< $@
+
+$(VRTDIR)/$(TILE).$(B).vrt: $(INPUT_FILES)
+	gdalbuildvrt -separate -overwrite $@ $(INPUT_FILES)
+
+composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).mean.tif: composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).tif
+	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< -B $< -C $<
+
+mean/mean.LTOA.$(BUF).vrt: composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
+	gdalbuildvrt -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
+
 composite.LTOA.$(BUF).vrt:
 	gdalbuildvrt -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.tif
 
-mean.LTOA.$(BUF).tif: composite.LTOA.$(BUF).vrt
+
+mean/mean.LTOA.$(BUF).tif: composite.LTOA.$(BUF).vrt
 	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< --A_band=1 -B $< --B_band=2 -C $< --C_band=3
 
-scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: mean.LTOA.$(BUF).tif
+2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.mean.tif: 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN04.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN06.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN07.tif
+	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $(word 1,$^) -B $(word 2,$^) -C $(word 3,$^)
+
+
+scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: mean/mean.LTOA.$(BUF).vrt
 	gdal_translate -of VRT -a_srs "EPSG:4087" -a_nodata 0 -ot Byte -scale $(CLD_MIN) $(CLD_MAX) 0 255 $< $@
 
-scaled.composite.LTOA.$(BUF).1.vrt: composite.LTOA.$(BUF).vrt
+scaled/scaled.composite.LTOA.$(BUF).1.vrt: composite.LTOA.$(BUF).vrt
 	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 1 $< $@
 
-scaled.composite.LTOA.$(BUF).2.vrt: composite.LTOA.$(BUF).vrt
+scaled/scaled.composite.LTOA.$(BUF).2.vrt: composite.LTOA.$(BUF).vrt
 	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 2 $< $@
 
-scaled.composite.LTOA.$(BUF).3.vrt: composite.LTOA.$(BUF).vrt
+scaled/scaled.composite.LTOA.$(BUF).3.vrt: composite.LTOA.$(BUF).vrt
 	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 3 $< $@
 
-cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: scaled.composite.LTOA.$(BUF).1.vrt scaled.composite.LTOA.$(BUF).2.vrt scaled.composite.LTOA.$(BUF).3.vrt scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
+cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: scaled/scaled.composite.LTOA.$(BUF).1.vrt scaled/scaled.composite.LTOA.$(BUF).2.vrt scaled/scaled.composite.LTOA.$(BUF).3.vrt scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
 	gdalbuildvrt -separate -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 $@ $+
 
-cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif: cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
+cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif: cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
 	gdal_translate -colorinterp_1 blue -colorinterp_2 green -colorinterp_3 red -colorinterp_4 alpha $< $@
 
 
-RSRF.NWLRK.cloud.alpha.LTOA.20210328_$(BUF).$(CLD_MIN)-$(CLD_MAX).tif: cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
+RSRF.NWLRK.cloud.alpha.LTOA.20210328_$(BUF).$(CLD_MIN)-$(CLD_MAX).tif: cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
 	composite $+ $@
 
 cloudMask.LTOA.20210328_$(BUF).$(TH).tif: mean.LTOA.$(BUF).tif

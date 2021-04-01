@@ -10,27 +10,10 @@ mkdir -p $VRTDIR
 export OUTFILE=composite/LTOA/$RES/$VER/composite.$RES.$TILE.$VER
 mkdir -p $(dirname $OUTFILE)
 
-for B in VN04 VN06 VN07 ; do #
-    INPUT_FILE_LIST=$(mktemp)
-    case $BUF in
-	11)
-	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1004\|1005\|1006\|1007\|1008\|1009\|1010\|1011\|1012\|1013\|1014" | sort > $INPUT_FILE_LIST
-	    ;;
-	9)
-	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1005\|1006\|1007\|1008\|1009\|1010\|1011\|1012\|1013" | sort > $INPUT_FILE_LIST
-	    ;;
-	7)
-	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1006\|1007\|1008\|1009\|1010\|1011\|1012" | sort > $INPUT_FILE_LIST
-	    ;;
-	5)
-	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1007\|1008\|1009\|1010\|1011" | sort > $INPUT_FILE_LIST
-	    ;;
-	3)
-	    find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T${TILE}.*LTOAK.*.$B.tif" | grep "1008\|1009\|1010" | sort > $INPUT_FILE_LIST
-	    ;;
-    esac
-    gdalbuildvrt -separate -input_file_list $INPUT_FILE_LIST -overwrite $VRTDIR/$TILE.$B.vrt #$(pwd)/GCOM-C-LTOA/$RES/$TILE/*T${TILE}*LTOAK*.$B.tif
-    rm -f $INPUT_FILE_LIST
+for B in VN04 VN06 VN07 ; do
+    export B
+    export INPUT_FILES=$(find $PWD/GCOM-C-LTOA/$RES/$TILE/ -type f -regex ".*201910.*T$TILE.*LTOAK.*.$B.tif" | grep $(for BUF in {3..1}; do printf "10%02d\|" $(expr 9 - $BUF); done)"1009\|"$(for BUF in {1..3}; do printf "10%02d\|" $(expr 9 + $BUF); done | sed 's/\\|$//g;') | awk 'BEGIN{ORS=" "}{print}'| sort)
+    make $VRTDIR/$TILE.$B.vrt
 done
 
 composite(){

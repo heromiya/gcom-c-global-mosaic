@@ -23,10 +23,10 @@ getRSRF() {
     #FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.RSRF/1
     FTP=ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.LTOA/2
 
-    H5FILE=GCOM-C-LTOA/LTOA/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_LTOAK_2002.h5
+    export H5FILE=GCOM-C-LTOA/LTOA/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_LTOAK_2002.h5
 
     #sleep $(echo $(( $RANDOM % 60 + 1 )))
-    if [ ! -e  GCOM-C-LTOA/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
+    #if [ ! -e  GCOM-C-LTOA/$RES/$TILE/$(basename $H5FILE).VN04.tif ]; then
 	
 	while [ $(ps -aux | grep wget | grep -v grep | wc -l) -gt 0 ]; do
 	    sleep $(echo $(( $RANDOM % 60 + 1 )))
@@ -34,23 +34,13 @@ getRSRF() {
 	
 	#wget -q --random-wait -nc --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/$(basename $H5FILE) -O $H5FILE
 	if [ $? -eq 0 ]; then
-	    for B in VN04 VN06 VN07; do # Lt_VN10 VN03 VN05 VN07 
-      		python3 h5_2_tiff.LTOA.py $H5FILE Lt_${B} $H5FILE.$B.tif $GCP_INTERVAL
-		gdalwarp $WARPOPT $H5FILE.$B.tif GCOM-C-LTOA/$RES/$TILE/$(basename $H5FILE).$B.tif
+	    for B in VN04 VN06 VN07; do # Lt_VN10 VN03 VN05 VN07
+		export B
+		export RESAMPLED_TIFF=GCOM-C-LTOA/$RES/$TILE/$(basename $H5FILE).$B.$RES.tif
+		make $RESAMPLED_TIFF
 	    done
 	fi
-    fi
-
-    #H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}*${TILE}_L2SG_NWLRQ_2001.h5
-    #FTP="ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.OCEAN.NWLR/2"
-
-
-    # Not stable to use resampled products.
-    #VGI_H5FILE=$WORKDIR/GC1SG1_${YYYY}${MM}${DD}D01D_T${TILE}_L2SG_VGI_Q_2000.h5
-    #wget -nc --user=heromiya --password=anonymous ftp://ftp.gportal.jaxa.jp/standard/GCOM-C/GCOM-C.SGLI/L2.LAND.VGI_/2/$YYYY/$MM/$DD/$(basename $VGI_H5FILE) -O $VGI_H5FILE
-    #python3 h5_2_tiff.py $VGI_H5FILE EVI $VGI_H5FILE.EVI.tif $GCP_INTERVAL
-    #gdalwarp $WARPOPT $VGI_H5FILE.EVI.tif GCOM-C/$TILE/$(basename $VGI_H5FILE).EVI.tif
-
+    #fi
     rm -rf $WORKDIR
 }
 export -f getRSRF
