@@ -11,23 +11,26 @@ $(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
 	gdalwarp $(WARPOPT) $< $@
 
 $(VRTDIR)/$(TILE).$(B).vrt: $(INPUT_FILES)
-	gdalbuildvrt -separate -overwrite $@ $(INPUT_FILES)
+	gdalbuildvrt -q -separate -overwrite $@ $(INPUT_FILES)
+
+$(OUTFILE): $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TILE).VN07.vrt
+	./composite.LTOA.sub.sh $(TILE) $(OUTFILE)
 
 composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).mean.tif: composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).tif
-	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< -B $< -C $<
+	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< -B $< -C $<
 
 mean/mean.LTOA.$(BUF).vrt: composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
-	gdalbuildvrt -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
+	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
 
 composite.LTOA.$(BUF).vrt:
-	gdalbuildvrt -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.tif
+	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.tif
 
 
 mean/mean.LTOA.$(BUF).tif: composite.LTOA.$(BUF).vrt
-	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< --A_band=1 -B $< --B_band=2 -C $< --C_band=3
+	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< --A_band=1 -B $< --B_band=2 -C $< --C_band=3
 
 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.mean.tif: 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN04.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN06.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN07.tif
-	gdal_calc.py --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $(word 1,$^) -B $(word 2,$^) -C $(word 3,$^)
+	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $(word 1,$^) -B $(word 2,$^) -C $(word 3,$^)
 
 
 scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: mean/mean.LTOA.$(BUF).vrt

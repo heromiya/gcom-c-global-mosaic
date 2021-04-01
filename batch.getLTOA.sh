@@ -17,22 +17,17 @@
 #parallel ./getLTOA.sh {} :::: TileNum.lst
 
 
-for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
-for BUF in 9 11; do #3 5 7 9
-    for TILE in $(cat TileNum.lst); do bash -x ./composite.LTOA.sh $TILE $BUF; done
+#for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
+for BUF in 04 05; do #3 5 7 9
+    parallel ./composite.LTOA.sh {} $BUF :::: TileNum.lst
 done
 
-tileComposite() {
-    export BUF=$1
-    export TILE=$2
-    make composite/LTOA/2000/20210328_${BUF}/composite.2000.${TILE}.20210328_${BUF}.mean.tif
-}
-export -f tileComposite
+#tileComposite() {
+#    export BUF=$1
+#    export TILE=$2
+#    make composite/LTOA/2000/20210328_${BUF}/composite.2000.${TILE}.20210328_${BUF}.mean.tif
+#}
+#export -f tileComposite
 
-#parallel --bar tileComposite $BUF $TILE ::: 09 11 :::: TileNum.lst
-tileComposite 09 1224
-
-for BUF in 09 11; do
-    export BUF=09
-    make mean/mean.LTOA.$BUF.vrt
-done
+#parallel --bar tileComposite $BUF $TILE ::: 04 05 :::: TileNum.lst
+#tileComposite 09 1224
