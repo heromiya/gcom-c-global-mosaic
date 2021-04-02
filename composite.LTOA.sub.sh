@@ -14,7 +14,7 @@ composite(){
     Y_MAX=$(echo $Y_RANGE | cut -f 2 -d ",")
 
     for B in VN04 VN06 VN07; do
-	gdalbuildvrt -te $X_MIN $Y_MIN $X_MAX $Y_MAX $WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.$B.vrt $VRTDIR/$TILE.$B.vrt
+	gdalbuildvrt -q -overwrite -te $X_MIN $Y_MIN $X_MAX $Y_MAX $WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.$B.vrt $VRTDIR/$TILE.$B.vrt
     done
 
     Rscript --vanilla composite.LTOA.R \
@@ -50,5 +50,5 @@ seq ${LowerRight[1]} $V_INTERVAL ${UpperLeft[1]} >  $V_2
 parallel composite ::: $(paste $H_1 $H_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }') ::: $(paste $V_1 $V_2 | tail -n +2 | head -n -1 | awk '{printf("%lf,%lf ",$1,$2) }')
 
 rm -f $OUTFILE
-gdal_merge.py -ot Float32 -co COMPRESS=Deflate -o $OUTFILE $OUTFILE.*.tif
+gdal_merge.py -q -ot Float32 -co COMPRESS=Deflate -o $OUTFILE $OUTFILE.*.tif
 rm -f $OUTFILE.*.tif

@@ -17,33 +17,26 @@ $(OUTFILE): $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TI
 	./composite.LTOA.sub.sh $(TILE) $(OUTFILE)
 
 composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).mean.tif: composite/LTOA/2000/20210328_$(BUF)/composite.2000.$(TILE).20210328_$(BUF).tif
-	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< -B $< -C $<
+	gdal_calc.py --overwrite --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< -B $< -C $<
 
-mean/mean.LTOA.$(BUF).vrt: composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
-	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.mean.tif
+composite/LTOA/2000/20210328_$(BUF).vrt: composite/LTOA/2000/20210328_$(BUF)/composite.2000.*.20210328_$(BUF).tif
+	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ $+
 
-composite.LTOA.$(BUF).vrt:
-	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.tif
+composite/LTOA/2000/20210328_$(BUF).mean.vrt: composite/LTOA/2000/20210328_$(BUF)/composite.2000.*.20210328_$(BUF).mean.tif
+	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ $+
+
+SCALE_OPT = -of VRT -ot Byte -a_srs "EPSG:4087" -scale
+
+scaled/scaled.composite.LTOA.$(BUF).1.vrt: composite/LTOA/2000/20210328_$(BUF).vrt
+	gdal_translate $(SCALE_OPT) -b 1 $< $@
+scaled/scaled.composite.LTOA.$(BUF).2.vrt: composite/LTOA/2000/20210328_$(BUF).vrt
+	gdal_translate $(SCALE_OPT) -b 1 $< $@
+scaled/scaled.composite.LTOA.$(BUF).3.vrt: composite/LTOA/2000/20210328_$(BUF).vrt
+	gdal_translate $(SCALE_OPT) -b 1 $< $@
 
 
-mean/mean.LTOA.$(BUF).tif: composite.LTOA.$(BUF).vrt
-	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< --A_band=1 -B $< --B_band=2 -C $< --C_band=3
-
-2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.mean.tif: 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN04.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN06.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN07.tif
-	gdal_calc.py --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $(word 1,$^) -B $(word 2,$^) -C $(word 3,$^)
-
-
-scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: mean/mean.LTOA.$(BUF).vrt
-	gdal_translate -of VRT -a_srs "EPSG:4087" -a_nodata 0 -ot Byte -scale $(CLD_MIN) $(CLD_MAX) 0 255 $< $@
-
-scaled/scaled.composite.LTOA.$(BUF).1.vrt: composite.LTOA.$(BUF).vrt
-	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 1 $< $@
-
-scaled/scaled.composite.LTOA.$(BUF).2.vrt: composite.LTOA.$(BUF).vrt
-	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 2 $< $@
-
-scaled/scaled.composite.LTOA.$(BUF).3.vrt: composite.LTOA.$(BUF).vrt
-	gdal_translate -of VRT -ot Byte -scale -a_srs "EPSG:4087" -b 3 $< $@
+scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: composite/LTOA/2000/20210328_$(BUF).mean.vrt
+	gdal_translate $(SCALE_OPT) $(CLD_MIN) $(CLD_MAX) 0 255 -a_nodata 0 $< $@
 
 cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: scaled/scaled.composite.LTOA.$(BUF).1.vrt scaled/scaled.composite.LTOA.$(BUF).2.vrt scaled/scaled.composite.LTOA.$(BUF).3.vrt scaled/scaled.mean.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
 	gdalbuildvrt -separate -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 $@ $+
@@ -51,9 +44,25 @@ cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt: scaled/scaled.c
 cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif: cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).vrt
 	gdal_translate -colorinterp_1 blue -colorinterp_2 green -colorinterp_3 red -colorinterp_4 alpha $< $@
 
-
 RSRF.NWLRK.cloud.alpha.LTOA.20210328_$(BUF).$(CLD_MIN)-$(CLD_MAX).tif: cloud.alpha.d/cloud.alpha.LTOA.$(BUF).$(CLD_MIN)-$(CLD_MAX).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
 	composite $+ $@
+
+
+
+
+
+composite.LTOA.$(BUF).vrt:
+	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ composite/LTOA/2000/20210328_$(BUF)/*.tif
+
+
+mean/mean.LTOA.$(BUF).tif: composite.LTOA.$(BUF).vrt
+	gdal_calc.py --overwrite --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $< --A_band=1 -B $< --B_band=2 -C $< --C_band=3
+
+
+
+2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.mean.tif: 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN04.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN06.tif 2000/$(TILE)/GC1SG1_$(DATE)D01D_T$(TILE)_L2SG_LTOAK_2002.h5.VN07.tif
+	gdal_calc.py --overwrite --quiet --calc="(A+B+C)/3" --NoDataValue=0 --outfile $@ --co="COMPRESS=Deflate" -A $(word 1,$^) -B $(word 2,$^) -C $(word 3,$^)
+
 
 cloudMask.LTOA.20210328_$(BUF).$(TH).tif: mean.LTOA.$(BUF).tif
 	gdal_calc.py --calc="numpy.where(numpy.logical_and(A > $(TH) , A < 9999), 1, numpy.nan)" --overwrite --outfile $@ -A $<
@@ -69,7 +78,6 @@ cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).2.tif: cloudMask.LTOA.20210328_$(
 
 cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).3.tif: cloudMask.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).tif composite.LTOA.$(BUF).vrt
 	gdal_calc.py --calc="numpy.where(A==1, B, numpy.nan)" --outfile $@ --co="COMPRESS=Deflate" -A $< -B composite.LTOA.$(BUF).vrt --B_band=3
-
 
 
 cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).vrt: cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).1.tif cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).2.tif cloud.LTOA.20210328_$(BUF).$(TH).sieve$(SIEVE).3.tif
