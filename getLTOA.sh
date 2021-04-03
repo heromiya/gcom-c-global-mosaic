@@ -49,7 +49,7 @@ export -f getRSRF
 #parallel getRSRF ::: {0..6} #314
 #parallel --bar getRSRF ::: {0..14}
 #for i in {268..273}; do getRSRF $i; done
-
-parallel getRSRF ::: {276..286}
+# 281 is for 9 Oct 2019
+parallel getRSRF ::: {273..289}
 
 #getRSRF 281

@@ -2,7 +2,8 @@
 
 export TILE=$1
 #IN_FILE=$1
-OUTFILE=$2
+export COMPOSITE_FUNCTION=$2
+export OUTFILE=$3
 
 composite(){
     WORKDIR=$(mktemp -d)
@@ -21,6 +22,7 @@ composite(){
 	$WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.VN04.vrt \
 	$WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.VN06.vrt \
 	$WORKDIR/$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.VN07.vrt \
+	$COMPOSITE_FUNCTION \
 	$OUTFILE.$X_MIN.$Y_MIN.$X_MAX.$Y_MAX.tif
 
     rm -rf $WORKDIR

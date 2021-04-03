@@ -11,7 +11,9 @@ B <- stack(args[1])
 G <- stack(args[2])
 R <- stack(args[3])
 
-outfile <- args[4]
+f <- args[4]
+
+outfile <- args[5]
 
 ysize <- dim(R)[1]
 xsize <- dim(R)[2]
@@ -30,12 +32,17 @@ input <- array(
 
 mean.na.rm <- function(x) mean(x, na.rm=TRUE)
 
-composite.max.mean <- function(x){
+composite <- function(x){
     intencity <- apply(x,1,mean.na.rm)
-    #q90 <- quantile(intencity,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
-    #idx <- match(q90,intencity)
-    idx <- match(max(intencity,na.rm=TRUE),intencity)
-
+    if (f == "max") {
+        idx <- match(max(intencity,na.rm=TRUE),intencity)
+    } else if (f == "median") {
+        idx <- match(median(intencity,na.rm=TRUE),intencity)
+    } else if (f == "q90") {
+        q90 <- quantile(intencity,probs=seq(0.9,1.0,0.1),type=3,na.rm=TRUE)[1]
+        idx <- match(q90,intencity)
+    }
+    
     R <- x[idx,3]
     G <- x[idx,2]
     B <- x[idx,1]
@@ -44,7 +51,7 @@ composite.max.mean <- function(x){
     c(R,G,B,A)
 }
 
-out <- apply(input,c(1,2),composite.max.mean)
+out <- apply(input,c(1,2),composite)
 
 Rout <- raster(ncol=xsize, nrow=ysize, crs=NA)
 extent(Rout) <- extent(R)

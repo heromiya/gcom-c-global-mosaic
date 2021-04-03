@@ -1,7 +1,14 @@
-#parallel ./getLTOA.sh {} :::: TileNum.lst
-#for TILE in $(cat TileNum.lst); do bash -x ./getLTOA.sh $TILE; done
+#! /bin/bash
 
-for BUF in 04 05; do #3 5 7 9
-    parallel ./composite.LTOA.sh {} $BUF :::: TileNum.lst
+#export COMPOSITE_FUNCTION=median
+export COMPOSITE_FUNCTION=q90
+
+
+parallel ./getLTOA.sh {} :::: TileNum.lst
+#for TILE in $(cat TileNum.lst); do ./getLTOA.sh $TILE; done
+
+for BUF in 7 8; do #3 5 7 9
+    export BUF
+    parallel ./composite.LTOA.sh {} $BUF ${COMPOSITE_FUNCTION} :::: TileNum.lst
+    ./flagCloudPixels.sh $BUF
 done
-
