@@ -32,7 +32,7 @@ export -f composite
 UpperLeft=($(gdalinfo  -json $VRTDIR/$TILE.VN04.vrt | jq ".cornerCoordinates.upperLeft" | tr -d "[],"))
 LowerRight=($(gdalinfo -json $VRTDIR/$TILE.VN04.vrt | jq ".cornerCoordinates.lowerRight" | tr -d "[],"))
 
-N_INT=2
+N_INT=4
 H_INTERVAL=$(perl -e "print( (${LowerRight[0]} - ${UpperLeft[0]}) / $N_INT )")
 V_INTERVAL=$(perl -e "print( (${UpperLeft[1]} - ${LowerRight[1]}) / $N_INT )")
 
