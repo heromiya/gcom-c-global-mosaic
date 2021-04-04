@@ -7,13 +7,13 @@ $(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
 $(VRTDIR)/$(TILE).$(B).vrt: $(INPUT_FILES)
 	gdalbuildvrt -q -separate -overwrite $@ $(INPUT_FILES)
 
-composite/LTOA/2000/20210328_$(BUF02d)/composite.2000.$(TILE).20210328_$(BUF02d).$(COMPOSITE_FUNCTION).tif: $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TILE).VN07.vrt
+composite/LTOA/2000/$(VER)/composite.2000.$(TILE).$(VER).$(COMPOSITE_FUNCTION).tif: $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TILE).VN07.vrt
 	./composite.LTOA.sub.sh $(TILE) $(COMPOSITE_FUNCTION) $@
 
-composite/LTOA/2000/20210328_$(BUF02d).$(COMPOSITE_FUNCTION).vrt: composite/LTOA/2000/20210328_$(BUF02d)/composite.2000.*.20210328_$(BUF02d).$(COMPOSITE_FUNCTION).tif
+composite/LTOA/2000/$(VER).$(COMPOSITE_FUNCTION).vrt: composite/LTOA/2000/$(VER)/composite.2000.*.$(VER).$(COMPOSITE_FUNCTION).tif
 	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ $+
 
-composite/LTOA/2000/20210328_$(BUF02d).$(COMPOSITE_FUNCTION).mean.vrt: composite/LTOA/2000/20210328_$(BUF02d)/composite.2000.*.20210328_$(BUF02d).$(COMPOSITE_FUNCTION).mean.tif
+composite/LTOA/2000/$(VER).$(COMPOSITE_FUNCTION).mean.vrt: composite/LTOA/2000/$(VER)/composite.2000.*.$(VER).$(COMPOSITE_FUNCTION).mean.tif
 	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ $+
 
 
