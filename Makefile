@@ -12,8 +12,9 @@ $(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
 $(VRTDIR)/$(TILE).$(B).vrt: $(INPUT_FILES)
 	gdalbuildvrt -q -separate -overwrite $@ $(INPUT_FILES)
 
-composite/$(PRODUCT)/2000/$(VER)/composite.2000.$(TILE).$(VER).$(COMPOSITE_FUNCTION).tif: $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TILE).VN07.vrt
+composite/CLFG/2000/$(VER)/composite.2000.$(TILE).$(VER).$(COMPOSITE_FUNCTION).tif: $(VRTDIR)/$(TILE).Cloud_flag.vrt
 	./composite.$(PRODUCT).sub.sh $(TILE) $(COMPOSITE_FUNCTION) $@
+
 
 ### LTOA ###
 
@@ -21,6 +22,8 @@ composite/$(PRODUCT)/2000/$(VER)/composite.2000.$(TILE).$(VER).$(COMPOSITE_FUNCT
 #	python3 h5_2_tiff.LTOA.py $< Lt_$(B) $@ $(GCP_INTERVAL)
 
 
+composite/LTOA/2000/$(VER)/composite.2000.$(TILE).$(VER).$(COMPOSITE_FUNCTION).tif: $(VRTDIR)/$(TILE).VN04.vrt $(VRTDIR)/$(TILE).VN06.vrt $(VRTDIR)/$(TILE).VN07.vrt
+	./composite.$(PRODUCT).sub.sh $(TILE) $(COMPOSITE_FUNCTION) $@
 
 
 composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt: composite/$(PRODUCT)/2000/$(VER)/composite.2000.*.$(VER).$(COMPOSITE_FUNCTION).tif
@@ -47,10 +50,10 @@ scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUN
 cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt: scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt
 	gdalbuildvrt -separate -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 $@ $+
 
-cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif: cloud.alpha.d/cloud.alpha.LTOA.$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt
+cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif: cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt
 	gdal_translate -colorinterp_1 blue -colorinterp_2 green -colorinterp_3 red -colorinterp_4 alpha $< $@
 
-cloud.alpha.combined.d/RSRF.NWLRK.cloud.alpha.LTOA.$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).tif: cloud.alpha.d/cloud.alpha.LTOA.$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
+cloud.alpha.combined.d/RSRF.NWLRK.cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).tif: cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
 	composite $+ $@
 
 
