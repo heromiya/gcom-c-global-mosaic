@@ -33,15 +33,23 @@ composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).mean.vrt: composite/$(PRO
 	gdalbuildvrt -q -a_srs "EPSG:4087" -srcnodata 0 -overwrite $@ $+
 
 
+composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).log.tif: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+	gdal_calc.py --calc="log(A+1)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
+
+composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+	gdal_calc.py --calc="exp(A)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
 SCALE_OPT = -of VRT -ot Byte -a_srs "EPSG:4087" -scale
 
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+#scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
 	gdal_translate $(SCALE_OPT) -b 1 $< $@
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	gdal_translate $(SCALE_OPT) -b 2 $< $@
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	gdal_translate $(SCALE_OPT) -b 3 $< $@
+#scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
+	gdal_translate $(SCALE_OPT) -b 1 $< $@
+#scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
+	gdal_translate $(SCALE_OPT) -b 1 $< $@
 
 scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
 	gdal_translate $(SCALE_OPT) $(CLD_MIN) $(CLD_MAX) 0 255 -a_nodata 0 -b 4 $< $@

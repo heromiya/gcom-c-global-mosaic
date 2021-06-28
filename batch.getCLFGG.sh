@@ -8,17 +8,16 @@ export PRODUCT=CLFG
 
 #date --date "1 jan 2019 273 days" -> Tue Oct  1 00:00:00 UTC 2019
 #date --date "1 jan 2019 303 days" -> Thu Oct 31 00:00:00 UTC 2019
+#date --date "1 jan 2019 281 days" -> Wed Oct  9 00:00:00 UTC 2019 ## Typhoon Haigis
 
-DATE_START=273
-DATE_END=289
-#DATE_END=303
+for BUF in 22; do
 
-#parallel ./getCLFG.sh {1} {2} ::: $(seq ${DATE_START} ${DATE_END}) :::: TileNum.lst
-#parallel --shuf ./getCLFG.sh {1} {2} ::: $(seq ${DATE_START} ${DATE_END}) ::: 0529
-#bash -x ./getCLFG.sh 273 0529
+    DATE_START=$(expr 281 - $BUF)
+    DATE_END=$(expr 281 + $BUF)
 
-#parallel ./composite.CLFG.sh {} ${DATE_START} ${DATE_END} ${COMPOSITE_FUNCTION} :::: TileNum.lst
-#bash -x ./composite.CLFG.sh 0529 ${DATE_START} ${DATE_END} ${COMPOSITE_FUNCTION}
-./flagCloudPixels.sh ${DATE_START} ${DATE_END} 0.1 0.2
+    #parallel ./getCLFG.sh {1} {2} ::: $(seq ${DATE_START} ${DATE_END}) :::: TileNum.lst
 
-#parallel cloudCombine {} {} ::: $(seq 40 10 90) ::: $(seq 100 10 150)
+    #parallel ./composite.CLFG.sh {} ${DATE_START} ${DATE_END} ${COMPOSITE_FUNCTION} :::: TileNum.lst
+    ./flagCloudPixels.sh ${DATE_START} ${DATE_END} 0.15 0.38
+
+done

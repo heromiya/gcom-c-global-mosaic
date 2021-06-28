@@ -9,12 +9,7 @@ export WARPOPT="-q -s_srs EPSG:4326 -t_srs EPSG:4087 -tr $RES $RES -tps -r med -
 export PRODUCT=CLFG
 
 
-mkdir -p GCOM-C-LTOA/$RES/$TILE
-mkdir -p VRT/$RES
-mkdir -p GCOM-C-LTOA/composite/$RES/$VER
-
-export OUTFILE=composite/$RES/$VER/composite.LTOA.v2.$RES.$TILE.$VER
-
+mkdir -p $PRODUCT/$RES/$TILE
 
 WORKDIR=$(mktemp -d /tmp/tmp.getRSRF.XXXXX)
 DOY=$1
@@ -32,7 +27,4 @@ export RESAMPLED_TIFF=CLFG/$RES/$TILE/$(basename $H5FILE).$B.$RES.tif
 mkdir -p $(dirname $RESAMPLED_TIFF)
 
 make $RESAMPLED_TIFF
-#done
-#fi
-#fi
 rm -rf $WORKDIR
