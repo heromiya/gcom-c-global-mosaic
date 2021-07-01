@@ -13,7 +13,7 @@ mkdir -p $PRODUCT/$RES/$TILE
 
 WORKDIR=$(mktemp -d /tmp/tmp.getRSRF.XXXXX)
 DOY=$1
-DATE_STRING="jan 1 2019 $DOY days"
+DATE_STRING="jan 1 $YEAR $DOY days"
 export YYYY=$(date --date="$DATE_STRING" +%Y)
 export MM=$(date --date="$DATE_STRING" +%m)
 export DD=$(date --date="$DATE_STRING" +%d)
@@ -26,5 +26,5 @@ export B=Cloud_flag
 export RESAMPLED_TIFF=CLFG/$RES/$TILE/$(basename $H5FILE).$B.$RES.tif
 mkdir -p $(dirname $RESAMPLED_TIFF)
 
-make $RESAMPLED_TIFF
+make -s $RESAMPLED_TIFF
 rm -rf $WORKDIR

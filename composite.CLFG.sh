@@ -2,8 +2,8 @@
 
 export TILE=$1
 
-export DATE_START=$2
-export DATE_END=$3
+export DATE_START=$YEAR-$2
+export DATE_END=$YEAR-$3
 export DATE_START03d=$(printf %03d $DATE_START)
 export DATE_END03d=$(printf %03d $DATE_END)
 
@@ -22,7 +22,7 @@ for B in Cloud_flag; do
     INPUT_DAYS=$(for D in $(eval echo {${DATE_START}..${DATE_END}}); do printf "%s\|" $(date --date "1 Jan 2019 $D days" +%m%d); done | sed 's/\\|$//g;')    
     export INPUT_FILES=$(find $PWD/$PRODUCT/$RES/$TILE/ -type f -regex ".*201910.*T$TILE.*${PRODUCT}K.*.$B.2000.tif" | grep $INPUT_DAYS | sort | awk 'BEGIN{ORS=" "}{print}')
     
-    make $VRTDIR/$TILE.$B.vrt
+    make -s $VRTDIR/$TILE.$B.vrt
 done
 
-make $OUTFILE
+make -s $OUTFILE

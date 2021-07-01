@@ -34,32 +34,56 @@ composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).mean.vrt: composite/$(PRO
 
 
 composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).log.tif: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	gdal_calc.py --calc="log(A+1)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
+	gdal_calc.py --quiet --calc="log(A+1)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
-composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	gdal_calc.py --calc="exp(A)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
-SCALE_OPT = -of VRT -ot Byte -a_srs "EPSG:4087" -scale
+composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif: temp.median.radius10.sdat
+	gdal_calc.py --quiet --overwrite --calc="exp(A)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
+
+
+#	/usr/bin/saga_cmd grid_filter 0 -INPUT $< -RESULT temp.tif
+#	gdal_translate $< temp1.tif
+#-SIGMA 50 -KERNEL_TYPE 0 -KERNEL_RADIUS 1
+
+#	saga_cmd contrib_perego 5 -INPUT temp.tif -RESULT3 $@ -RESULT1 low-pass1.tif -RESULT2 low-pass2.tif
+
+#	saga_cmd grid_filter 10 -INPUT temp.tif -OUTPUT $@
+
+
+IN_CLOUD_COMPOSITE = composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).median10.tif
+
+$(IN_CLOUD_COMPOSITE): composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+	/usr/bin/saga_cmd grid_filter 9 -INPUT $< -RESULT $(WORKDIR)/filter.sdat -RADIUS 10
+	gdal_translate -co compress=Deflate $(WORKDIR)/filter.sdat $@
+
+
+SCALE_OPT = -ot Byte -a_srs "EPSG:4087" -scale
 #scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
-	gdal_translate $(SCALE_OPT) -b 1 $< $@
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.tif: $(IN_CLOUD_COMPOSITE) #composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
+	gdal_translate -q -co COMPRESS=Deflate  $(SCALE_OPT) -b 1 $< $@
+
 #scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
-	gdal_translate $(SCALE_OPT) -b 1 $< $@
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.tif: $(IN_CLOUD_COMPOSITE) #composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
+	gdal_translate -q -co COMPRESS=Deflate  $(SCALE_OPT) -b 1 $< $@
+
 #scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
-	gdal_translate $(SCALE_OPT) -b 1 $< $@
+scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.tif: $(IN_CLOUD_COMPOSITE) #composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif
+	gdal_translate -q -co COMPRESS=Deflate  $(SCALE_OPT) -b 1 $< $@
 
-scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	gdal_translate $(SCALE_OPT) $(CLD_MIN) $(CLD_MAX) 0 255 -a_nodata 0 -b 4 $< $@
+scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).tif: composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
+	gdal_translate -q -co COMPRESS=Deflate $(SCALE_OPT) $(CLD_MIN) $(CLD_MAX) 0 255 -a_nodata 0 -b 4 $< $@
 
 
-cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt: scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.vrt scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.vrt scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.vrt scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt
-	gdalbuildvrt -separate -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 $@ $+
+cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt: scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).1.tif scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).2.tif scaled/scaled.composite.$(PRODUCT).$(VER).$(COMPOSITE_FUNCTION).3.tif scaled/scaled.mean.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).tif
+#	gdal_merge.py -o $(WORKDIR)/merge.tif -co COMPRESS=Deflate -separate $+
+#	gdalwarp -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 -co COMPRESS=Deflate $(WORKDIR)/merge.tif $@
+	gdalbuildvrt -q -separate -overwrite -r average -tr 5006.594097500000316 4731.078360000000430 -te -20026376.390 -9462156.720 20026376.390 9462156.720 $@ $+
+#	gdal_translate $(WORKDIR)/align.vrt $@
 
 cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif: cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).vrt
-	gdal_translate -colorinterp_1 blue -colorinterp_2 green -colorinterp_3 red -colorinterp_4 alpha $< $@
+	gdal_translate -q -colorinterp_1 blue -colorinterp_2 green -colorinterp_3 red -colorinterp_4 alpha $< $@
+#	convert temp.tif -morphology Convolve Gaussian:0x2 $@
 
 cloud.alpha.combined.d/RSRF.NWLRK.cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).tif: cloud.alpha.d/cloud.alpha.$(PRODUCT).$(VER).$(CLD_MIN03d)-$(CLD_MAX03d).$(COMPOSITE_FUNCTION).colorinterpret.tif RSRF.NWLRK.8000x4000.hist-matched.Byte-mod.tif
 	composite $+ $@
