@@ -1,3 +1,7 @@
+### L1B ###
+$(L1B_OUT): $(L1B_IN)
+	python SGLI_L1/L1.py $< $@
+
 ### CLFG ###
 
 $(H5FILE):
@@ -37,8 +41,8 @@ composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).log.tif: composite/$(PROD
 	gdal_calc.py --quiet --calc="log(A+1)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
 
-composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif: temp.median.radius10.sdat
-	gdal_calc.py --quiet --overwrite --calc="exp(A)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
+composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp10.tif: temp.median.radius10.sdat
+	gdal_calc.py --quiet --overwrite --calc="exp(A*10)" --outfile=$@ --co="COMPRESS=Deflate" -A $<
 
 
 
@@ -54,8 +58,8 @@ composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).exp.tif: temp.median.radi
 IN_CLOUD_COMPOSITE = composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).median10.tif
 
 $(IN_CLOUD_COMPOSITE): composite/$(PRODUCT)/2000/$(VER).$(COMPOSITE_FUNCTION).vrt
-	/usr/bin/saga_cmd grid_filter 9 -INPUT $< -RESULT $(WORKDIR)/filter.sdat -RADIUS 10
-	gdal_translate -co compress=Deflate $(WORKDIR)/filter.sdat $@
+#	/usr/bin/saga_cmd grid_filter 9 -INPUT $< -RESULT $(WORKDIR)/filter.sdat -RADIUS 10
+	gdal_translate -co compress=Deflate $< $@ #(WORKDIR)/filter.sdat
 
 
 SCALE_OPT = -ot Byte -a_srs "EPSG:4087" -scale

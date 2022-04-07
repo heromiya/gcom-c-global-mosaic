@@ -1,9 +1,11 @@
 # coding:utf-8
 import numpy as np
-import gdal, ogr, os, osr,sys
+import os, sys
 import h5py
 import math
-
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 #タイル番号、画素の位置に対応する緯度経度のメッシュを返す関数
 #4800x4800ピクセルすべての緯度経度を求めても遅い＆gdal_translateでエラーになるので100ピクセル毎に間引き
 #四隅が欲しいのでgcpの配列の大きさは縦横+1してある

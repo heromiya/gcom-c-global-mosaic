@@ -26,5 +26,5 @@ export B=Cloud_flag
 export RESAMPLED_TIFF=CLFG/$RES/$TILE/$(basename $H5FILE).$B.$RES.tif
 mkdir -p $(dirname $RESAMPLED_TIFF)
 
-make -s $RESAMPLED_TIFF
+make $RESAMPLED_TIFF
 rm -rf $WORKDIR
