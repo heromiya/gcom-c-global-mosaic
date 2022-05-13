@@ -17,23 +17,24 @@ WORKDIR=$(mktemp -d /tmp/tmp.getRSRF.XXXXX)
 #export MM=$(date --date="$DATE_STRING" +%m)
 #export DD=$(date --date="$DATE_STRING" +%d)
 
-
-export YYYY=2019
-export MM=10
-export DD=08
-
-function f() {
+function h2t() {
     export L1B_IN=$1
     export L1B_OUT=L1B.gtiff/$YYYY/$MM/$DD/$(basename $L1B_IN)-467.tif
     make $L1B_OUT
 }
-export -f f
+export -f h2t
 
+function merge() {
+    P=$1
+    gdalwarp -co compress=deflate -multi $(find $GTIFF_DIR -type f -regex  ".*[A-Z]${P}[0-9][0-9]_.*") $GTIFF_DIR/GC1SG1_${YYYY}${MM}${DD}_${P}-467.tif
 
-function get_hdf(){
-    YYYY=$1
-    MM=$2
-    DD=$3
+}
+export -f merge
+
+function get_L1B(){
+    export YYYY=$1
+    export MM=$2
+    export DD=$3
 
     mkdir -p L1B/$YYYY/$MM/$DD L1B.gtiff/$YYYY/$MM/$DD
     cd L1B/$YYYY/$MM/$DD
@@ -41,14 +42,19 @@ function get_hdf(){
     wget -nc --random-wait --user=heromiya --password=anonymous $FTP/$YYYY/$MM/$DD/*VNRDL_200*.h5
 
     cd $OLDPWD
-    parallel f ::: L1B/$YYYY/$MM/$DD/*.h5
+    parallel --results log.d/h2t h2t ::: L1B/$YYYY/$MM/$DD/*.h5
+
+    export GTIFF_DIR=L1B.gtiff/$YYYY/$MM/$DD/
+    
+    parallel --results log.d/merge merge ::: $(find $GTIFF_DIR -type f | sed 's/.*[A-Z]\([0-9]\{3\}\)[0-9]\{2\}.*tif/\1/g' | sort | uniq)
+    #for P in  $(find $GTIFF_DIR -type f | sed 's/.*[A-Z]\([0-9]\{3\}\)[0-9]\{2\}.*tif/\1/g' | sort | uniq); do gdalwarp -co compress=deflate -multi $(find $GTIFF_DIR -type f -regex  ".*[A-Z]${P}[0-9][0-9]_.*") $GTIFF_DIR/GC1SG1_${YYYY}${MM}${DD}_${P}-467.tif; done
 }
-export -f get_hdf
+export -f get_L1B
 
-for YYYY in 2018 2019 2020; do for DD in 08 09 10; do get_hdf $YYYY 10 $DD; done; done
+for YYYY in 2018 2019 2020 2021; do for DD in 06 07 08 09 10 11 12 13; do get_L1B $YYYY 10 $DD; done; done
+#get_L1B 2019 10 09
 
-
-#parallel get_hdf {1} 10 {2} ::: 2018 2019 2020 ::: 08 09 10
+#parallel get_hdf {1} 10 {2} ::: 2018 2019 2020 2021 ::: 06 07 08 09 10 11 12 13
 
 
 

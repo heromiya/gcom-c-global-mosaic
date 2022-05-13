@@ -1,6 +1,7 @@
 # coding:utf-8
 import numpy as np
-import gdal, ogr, os, osr,sys
+from osgeo import gdal, ogr,  osr
+import os, sys
 import h5py
 import math
 

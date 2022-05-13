@@ -7,11 +7,11 @@ $(L1B_OUT): $(L1B_IN)
 $(H5FILE):
 	wget --random-wait -nc --user=heromiya --password=anonymous $(FTP)/$(YYYY)/$(MM)/$(DD)/`basename $(H5FILE)` -O $@
 
-$(H5FILE).$(B).gcp.tif: $(H5FILE)
+$(CLFG_OUT): $(CLFG_IN)
 	python3 h5_2_tiff.$(PRODUCT).py $< $(B) $@ $(GCP_INTERVAL)
 
-$(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
-	gdalwarp $(WARPOPT) $< $@
+#$(RESAMPLED_TIFF): $(H5FILE).$(B).gcp.tif
+#	gdalwarp $(WARPOPT) $< $@
 
 $(VRTDIR)/$(TILE).$(B).vrt: $(INPUT_FILES)
 	gdalbuildvrt -q -separate -overwrite $@ $(INPUT_FILES)

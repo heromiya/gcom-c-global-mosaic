@@ -3,7 +3,7 @@ import numpy as np
 import os, sys
 import h5py
 import math
-from osgeo import gdal
+from osgeo import gdal, gdalconst
 from osgeo import ogr
 from osgeo import osr
 #タイル番号、画素の位置に対応する緯度経度のメッシュを返す関数
@@ -13,6 +13,7 @@ def get_geomesh(filename,lin_tile,col_tile,gcp_interval):
         #グラニュールIDからタイルのIDを取得する
         v_tile=int(input_file_name[21:23])
         h_tile=int(input_file_name[23:25])
+        #print(v_tile, h_tile)
         
         #SGLI/L2なら固定だと思う
         v_tile_num=18
@@ -39,35 +40,38 @@ def get_geomesh(filename,lin_tile,col_tile,gcp_interval):
                         lat=90.0-(lin_total+0.5)*d
                         NP_i=NP_0*math.cos(math.radians(lat))
                         lon=360.0*(col_total+0.5-NP_0/2)/NP_i
+                        if lon < -360 or lon > 360:
+                                exit()
                         gcp=gdal.GCP(round(lon,6),round(lat,6),0,col+0.5,lin+0.5)
                         gcp_list.append(gcp)
         return gcp_list
 
 def getDN(x):
+        vn_available = np.binary_repr(x,width=16)[15]
         flag = np.binary_repr(x,width=16)[0:4]
-        if flag == '1000':
-                cloud = 1 - 0.0
-        elif flag == '1001':
-                cloud = 1 - (0.00 + 0.17) / 2
-        elif flag == '1010':
-                cloud = 1 - (0.17 + 0.33) / 2
-        elif flag == '1011':
-                cloud = 1 - (0.33 + 0.50) / 2
-        elif flag == '1100':
-                cloud = 1 - (0.50 + 0.67) / 2
-        elif flag == '1101':
-                cloud = 1 - (0.67 + 0.83) / 2
-        elif flag == '1110':
-                cloud = 1 - (0.83 + 1.00) / 2
-        elif flag == '1111':
-                cloud = 1 - 1.0
+        if vn_available == '1':
+                if flag == '1000':
+                        cloud = 1 - 0.0
+                elif flag == '1001':
+                        cloud = 1 - (0.00 + 0.17) / 2
+                elif flag == '1010':
+                        cloud = 1 - (0.17 + 0.33) / 2
+                elif flag == '1011':
+                        cloud = 1 - (0.33 + 0.50) / 2
+                elif flag == '1100':
+                        cloud = 1 - (0.50 + 0.67) / 2
+                elif flag == '1101':
+                        cloud = 1 - (0.67 + 0.83) / 2
+                elif flag == '1110':
+                        cloud = 1 - (0.83 + 1.00) / 2
+                elif flag == '1111':
+                        cloud = 1 - 1.0
+                else:
+                        cloud = np.nan
         else:
                 cloud = np.nan
         return cloud
-                
-#        flag = np.where(flag < 1000,np.nan,flag)
-        
-#        return int(np.binary_repr(x,width=16)[:4],2)
+
 
 if __name__ == '__main__':
 
@@ -115,6 +119,7 @@ if __name__ == '__main__':
         getDN_vec = np.vectorize(getDN)
 
         DN = getDN_vec(Image_var)
+        #DN = Image_var
         #DN = np.where(DN==16383,np.nan,DN)
 	#値を求める
         #Value_arr=(DN)
@@ -125,7 +130,7 @@ if __name__ == '__main__':
         lin_size=Image_var.shape[0]
 	#列数
         col_size=Image_var.shape[1]
-
+        
 	#GCPのリストをつくる
         gcp_list=get_geomesh(input_file_name,lin_size,col_size,gcp_interval)
 
@@ -137,14 +142,12 @@ if __name__ == '__main__':
         output.GetRasterBand(1).WriteArray(Value_arr)
         wkt = output.GetProjection()
         output.SetGCPs(gcp_list,wkt)
-        
-	#与えたGCPを使ってEPSG4326に投影変換
-	#options = gdal.WarpOptions(xRes=0.020833325, yRes=0.020833325, dstSRS='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs',tps = True, multithread = True, outputType=dtype)
-	#kwargs = { 'dstSRS': '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs', 'tps': True, 'outputType': dtype }
-	#output = gdal.Warp(output_file, output)
-	#output = gdal.Warp(output_file, output, dstSRS='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs',tps = True,outputType=dtype)
-        
-        output.FlushCache()
-        output = None 	
 
-        hdf_file.close()
+        output = gdal.Warp(output_file, output, dstSRS='+proj=longlat +datum=WGS84 +no_defs', tps = True, dstNodata=-1,\
+                           outputType=dtype, multithread=True, xRes=0.016666666, yRes=0.016666666, \
+                           resampleAlg=gdalconst.GRIORA_NearestNeighbour, creationOptions=["COMPRESS=Deflate"])
+        output = None
+
+        
+
+hdf_file.close()
